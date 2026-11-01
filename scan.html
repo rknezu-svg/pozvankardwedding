@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Odbavení</title>
+<style>
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:#0e0e0e;color:#f2efe9;font-family:system-ui,Arial,sans-serif;text-align:center;padding:20px;transition:background .15s}
+body.ok{background:#0b7a2b}body.bad{background:#b3121a}body.dup{background:#b36b00}
+input{font-size:2rem;padding:14px;width:min(520px,90vw);text-align:center;border:2px solid #f2efe9;background:#fff;color:#000}
+#r{font-size:clamp(2rem,8vw,4.5rem);font-weight:800;min-height:1.2em}#n{font-size:2rem}
+</style></head><body>
+<div id="r">Přiložte kód ke čtečce</div><div id="n"></div>
+<input id="t" type="password" placeholder="Admin token" autocomplete="off">
+<input id="c" inputmode="numeric" placeholder="Kód vstupenky" autofocus>
+<script>
+var t=document.getElementById("t"),c=document.getElementById("c"),r=document.getElementById("r"),n=document.getElementById("n");
+t.value=sessionStorage.getItem("tk")||"";
+t.onchange=function(){sessionStorage.setItem("tk",t.value)};
+function show(cls,txt,name){document.body.className=cls;r.textContent=txt;n.textContent=name||"";setTimeout(function(){document.body.className="";r.textContent="Přiložte kód ke čtečce";n.textContent=""},3500)}
+c.addEventListener("keydown",async function(e){
+  if(e.key!=="Enter")return;
+  var code=c.value.replace(/\D/g,"");c.value="";if(!code)return;
+  try{
+    var res=await fetch("/api/check?checkin=1&code="+code,{headers:{"x-token":t.value}});
+    if(res.status===401)return show("bad","Špatný token");
+    var j=await res.json();
+    if(!j.valid)show("bad","NEPLATNÁ");
+    else if(j.already)show("dup","JIŽ ODBAVENÝ",j.name+" ("+new Date(j.already).toLocaleTimeString("cs-CZ")+")");
+    else show("ok","VSTUP OK",j.name);
+  }catch(err){show("bad","Chyba spojení")}
+  c.focus();
+});
+document.addEventListener("click",function(e){if(e.target!==t)c.focus()});
+</script></body></html>
