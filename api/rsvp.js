@@ -20,7 +20,7 @@ module.exports = async (req, res) => {
       if (!code) throw new Error('code');
     }
     const rec = {
-      name, coming, drinks: list(b.drinks), diet: list(b.diet), other: String(b.other || '').slice(0, 200),
+      name, coming, arrival: String(b.arrival || '').slice(0, 40), drinks: list(b.drinks), diet: list(b.diet), other: String(b.other || '').slice(0, 200),
       meat: list(b.meat), code: code || null, at: new Date().toISOString(), used: old ? old.used || null : null,
     };
     await cmd(['SET', key, JSON.stringify(rec)]);
